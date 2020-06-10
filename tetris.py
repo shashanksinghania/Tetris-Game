@@ -1,6 +1,8 @@
 import pygame
 import random
 
+pygame.font.init()
+
 window_height = 700
 window_width = 800
 
@@ -163,11 +165,28 @@ def format_piece(piece):
     for i, row in enumerate(format):
         for j, col in enumerate(row):
             if col == '0':
-                positions.append((piece.x + j - 2, piece.y + i - 4))     # 2, 4 to adjust the positions
+                positions.append((piece.x + j - 2, piece.y + i - 4))  # 2, 4 to adjust the positions
 
     return positions
 
 
+def draw_next_piece(piece, window):
+    right_side_x = x_coordinate + grid_width + 50
+    right_side_y = y_coordinate + 70
+
+    fnt = pygame.font.SysFont('commicsans', 35)
+    txt = fnt.render("Next Shape", 1, (255, 255, 255))
+    window.blit(txt, (right_side_x + 10, right_side_y))
+
+    # Shape
+    shape = piece.shape
+    positions = shape[piece.rotation % len(shape)]
+
+    for x, row in enumerate(positions):
+        for y, col in enumerate(row):
+            if col == '0':
+                pygame.draw.rect(window, piece.color, (right_side_x + 10 + x * cube_side, right_side_y + 30 + y * cube_side,
+                                                       cube_side, cube_side), 0)
 def draw_window(window, grid):
     # Background color
     window.fill((0, 0, 0))
@@ -189,7 +208,6 @@ def draw_window(window, grid):
 
     draw_grid_lines(window, grid)
 
-    pygame.display.update()
 
 
 def is_valid_pos(piece, grid):
@@ -231,7 +249,7 @@ def main(window):
         fall_time += clock.get_rawtime()
         clock.tick()
 
-        if fall_time/1000 > fall_speed:
+        if fall_time / 1000 > fall_speed:
             fall_time = 0
             current_piece.y += 1
             if not is_valid_pos(current_piece, grid) and current_piece.y > 0:
@@ -274,6 +292,8 @@ def main(window):
             lock_piece = False
 
         draw_window(window, grid)
+        draw_next_piece(next_piece, window)
+        pygame.display.update()
 
         if check_lost(locked_pos):
             run = False
