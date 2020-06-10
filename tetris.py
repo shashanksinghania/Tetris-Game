@@ -149,6 +149,25 @@ def draw_grid_lines(window, grid):
                              (x_coordinate + j * cube_side), y_coordinate + grid_height)
 
 
+def format_piece(piece):
+    shape = piece.shape
+    positions = []
+    format = shape[piece.rotation % len(shape)]
+
+    '''['.....',
+        '..0..',
+        '.00..',
+        '..0..',
+        '.....']'''
+
+    for i, row in enumerate(format):
+        for j, col in enumerate(row):
+            if col == '0':
+                positions.append((piece.x + j - 2, piece.y + i - 4))     # 2, 4 to adjust the positions
+
+    return positions
+
+
 def draw_window(window, grid):
     # Background color
     window.fill((0, 0, 0))
@@ -174,20 +193,51 @@ def draw_window(window, grid):
 
 
 def is_valid_pos(piece, grid):
-    pass
+    valid_positions = []
+
+    # all valid positions
+    for i in range(len(grid)):
+        for j in range(len(grid[0])):
+            if(grid[j][i] == (0,0,0)):
+                valid_positions.append((j, i))
+
+    formatted = format_piece(piece)
+    for ele in formatted:
+        if ele not in valid_positions:
+            if ele[1] > -1:
+                return False
+    return True
+
+
+def check_lost(positions):
+    for x, y in positions:
+        if y < 1:
+            return True
+    return False
 
 
 def main(window):
     locked_pos = {}
-    grid = create_grid(locked_pos)
     current_piece = get_random_piece()
     next_piece = get_random_piece()
     fall_time = 0
-    change_piece = False
+    fall_speed = 0.27
+    lock_piece = False
     run = True
     clock = pygame.time.Clock()
 
     while run:
+        grid = create_grid(locked_pos)
+        fall_time += clock.get_rawtime()
+        clock.tick()
+
+        if fall_time/1000 > fall_speed:
+            fall_time = 0
+            current_piece.y +=1
+            if not is_valid_pos(current_piece, grid) and current_piece.y>0:
+                current_piece.y -=1
+                lock_piece = True
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
@@ -208,7 +258,26 @@ def main(window):
                     current_piece.y += 1
                     if not is_valid_pos(current_piece, grid):
                         current_piece.y -= 1
+
+        shape_pos = format_piece(current_piece)
+        for i in range(len(shape_pos)):
+            x, y = shape_pos[i]
+            if y > -1:
+                grid[y][x] = current_piece.color
+
+        if lock_piece:
+            for pos in shape_pos:
+                p = (pos[0], pos[1])
+                locked_pos[p] = current_piece.color
+            current_piece = next_piece
+            next_piece = get_random_piece()
+            lock_piece = False
+
         draw_window(window, grid)
+
+        if check_lost(locked_pos):
+            run = False
+    pygame.display.quit()
 
 
 def main_menu(window):
