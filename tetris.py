@@ -140,15 +140,13 @@ def get_random_piece():
     return Piece(5, 0, random.choice(pieces))
 
 
-def draw_grid(window, grid):
-
-    # Grid
+def draw_grid_lines(window, grid):
     for i in range(len(grid)):
+        pygame.draw.line(window, (128, 128, 128), (x_coordinate, y_coordinate + i * cube_side),
+                         (x_coordinate + grid_width, y_coordinate + i * cube_side))
         for j in range(len(grid[i])):
-            pygame.draw.rect(window, grid[i][j], (x_coordinate + cube_side * j, y_coordinate + cube_side * i, cube_side, cube_side), 0)
-
-    # Border
-    pygame.draw.rect(window, (255, 0, 0), (x_coordinate, y_coordinate, grid_width, grid_height), 4)
+            pygame.draw.line(window, (128, 128, 128), (x_coordinate + j * cube_side, y_coordinate),
+                             (x_coordinate + j * cube_side), y_coordinate + grid_height)
 
 
 def draw_window(window, grid):
@@ -161,14 +159,25 @@ def draw_window(window, grid):
     txt = fnt.render("Tetris", 1, (255, 255, 255))
     window.blit(txt, ((window_width - txt.get_width()) // 2, 30))
 
-    draw_grid(window, grid)
+    # Grid
+    for i in range(len(grid)):
+        for j in range(len(grid[i])):
+            pygame.draw.rect(window, grid[i][j],
+                             (x_coordinate + cube_side * j, y_coordinate + cube_side * i, cube_side, cube_side), 0)
+
+    # Border
+    pygame.draw.rect(window, (255, 0, 0), (x_coordinate, y_coordinate, grid_width, grid_height), 4)
+
+    draw_grid_lines(window, grid)
 
     pygame.display.update()
 
 
+def is_valid_pos(piece, grid):
+    pass
 
 
-def main():
+def main(window):
     locked_pos = {}
     grid = create_grid(locked_pos)
     current_piece = get_random_piece()
@@ -185,10 +194,27 @@ def main():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     current_piece.x -= 1
+                    if not is_valid_pos(current_piece, grid):
+                        current_piece.x += 1
                 if event.key == pygame.K_RIGHT:
                     current_piece.x += 1
+                    if not is_valid_pos(current_piece, grid):
+                        current_piece.x -= 1
                 if event.key == pygame.K_UP:
                     current_piece.rotation += 1
+                    if not is_valid_pos(current_piece, grid):
+                        current_piece.rotation -= 1
                 if event.key == pygame.K_DOWN:
                     current_piece.y += 1
+                    if not is_valid_pos(current_piece, grid):
+                        current_piece.y -= 1
+        draw_window(window, grid)
 
+
+def main_menu(window):
+    main(window)
+
+
+window = pygame.display.set_mode((window_width, window_height))
+pygame.display.set_caption("Tetris")
+main_menu(window)
