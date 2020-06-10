@@ -146,7 +146,7 @@ def draw_grid_lines(window, grid):
                          (x_coordinate + grid_width, y_coordinate + i * cube_side))
         for j in range(len(grid[i])):
             pygame.draw.line(window, (128, 128, 128), (x_coordinate + j * cube_side, y_coordinate),
-                             (x_coordinate + j * cube_side), y_coordinate + grid_height)
+                             (x_coordinate + j * cube_side, y_coordinate + grid_height))
 
 
 def format_piece(piece):
@@ -196,10 +196,10 @@ def is_valid_pos(piece, grid):
     valid_positions = []
 
     # all valid positions
-    for i in range(len(grid)):
-        for j in range(len(grid[0])):
-            if(grid[j][i] == (0,0,0)):
-                valid_positions.append((j, i))
+    for i in range(10):
+        for j in range(20):
+            if grid[j][i] == (0, 0, 0):
+                valid_positions.append((i, j))
 
     formatted = format_piece(piece)
     for ele in formatted:
@@ -233,9 +233,9 @@ def main(window):
 
         if fall_time/1000 > fall_speed:
             fall_time = 0
-            current_piece.y +=1
-            if not is_valid_pos(current_piece, grid) and current_piece.y>0:
-                current_piece.y -=1
+            current_piece.y += 1
+            if not is_valid_pos(current_piece, grid) and current_piece.y > 0:
+                current_piece.y -= 1
                 lock_piece = True
 
         for event in pygame.event.get():
