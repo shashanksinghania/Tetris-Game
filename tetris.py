@@ -185,8 +185,11 @@ def draw_next_piece(piece, window):
     for x, row in enumerate(positions):
         for y, col in enumerate(row):
             if col == '0':
-                pygame.draw.rect(window, piece.color, (right_side_x + 10 + x * cube_side, right_side_y + 30 + y * cube_side,
-                                                       cube_side, cube_side), 0)
+                pygame.draw.rect(window, piece.color,
+                                 (right_side_x + 10 + x * cube_side, right_side_y + 30 + y * cube_side,
+                                  cube_side, cube_side), 0)
+
+
 def draw_window(window, grid):
     # Background color
     window.fill((0, 0, 0))
@@ -209,7 +212,6 @@ def draw_window(window, grid):
     draw_grid_lines(window, grid)
 
 
-
 def is_valid_pos(piece, grid):
     valid_positions = []
 
@@ -225,6 +227,28 @@ def is_valid_pos(piece, grid):
             if ele[1] > -1:
                 return False
     return True
+
+
+def clear_rows(grid, locked_pos):
+    num_of_rows = 0
+    for i in range(len(grid) - 1, -1, -1):
+        row = grid[i]
+        if (0, 0, 0) not in row:
+            num_of_rows += 1
+            ind = i
+            for j in range(len(row)):
+                try:
+                    del locked_pos[(j, i)]
+                except:
+                    continue
+
+    # If we have removed at least 1 row
+    if num_of_rows > 0:
+        for key in sorted(list(locked_pos), key=lambda k: k[1], reverse=True):
+            x, y = key
+            if y < ind:
+                key1 = (x, y + num_of_rows)
+                locked_pos[key1] = locked_pos.pop(key)
 
 
 def check_lost(positions):
@@ -290,6 +314,7 @@ def main(window):
             current_piece = next_piece
             next_piece = get_random_piece()
             lock_piece = False
+            clear_rows(grid, locked_pos)
 
         draw_window(window, grid)
         draw_next_piece(next_piece, window)
