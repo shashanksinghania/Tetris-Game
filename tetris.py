@@ -1,4 +1,4 @@
-import pygame
+import pygame, sys
 import random
 
 pygame.font.init()
@@ -130,6 +130,12 @@ class Piece:
         self.color = piece_colors[pieces.index(shape)]
         self.rotation = 0
 
+def display_end_message(window, text, size, color):
+    font =pygame.font.SysFont("commicsans", size, bold=True)
+    label = font.render(text, 1, color)
+
+    window.blit(label, (x_coordinate + grid_width//2 - label.get_width()//2,
+                         y_coordinate + grid_height//2 - label.get_height()//2))
 
 def create_grid(locked_pos={}):
     grid = [[(0, 0, 0) for x in range(grid_width // cube_side)] for x in range(grid_height // cube_side)]
@@ -190,7 +196,8 @@ def draw_next_piece(piece, window):
                                   cube_side, cube_side), 0)
 
 
-def draw_window(window, grid):
+def draw_window(window, grid, score=0):
+
     # Background color
     window.fill((0, 0, 0))
 
@@ -210,6 +217,13 @@ def draw_window(window, grid):
     pygame.draw.rect(window, (255, 0, 0), (x_coordinate, y_coordinate, grid_width, grid_height), 4)
 
     draw_grid_lines(window, grid)
+
+    right_side_x = x_coordinate + grid_width + 50
+    right_side_y = y_coordinate + 70
+
+    fnt = pygame.font.SysFont('commicsans', 35)
+    txt = fnt.render("Score: "+ str(score), 1, (255, 255, 255))
+    window.blit(txt, (right_side_x + 30, right_side_y + 200))
 
 
 def is_valid_pos(piece, grid):
@@ -249,6 +263,7 @@ def clear_rows(grid, locked_pos):
             if y < ind:
                 key1 = (x, y + num_of_rows)
                 locked_pos[key1] = locked_pos.pop(key)
+    return num_of_rows
 
 
 def check_lost(positions):
@@ -259,6 +274,7 @@ def check_lost(positions):
 
 
 def main(window):
+    score = 0
     locked_pos = {}
     current_piece = get_random_piece()
     next_piece = get_random_piece()
@@ -283,6 +299,7 @@ def main(window):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+                sys.exit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     current_piece.x -= 1
@@ -314,21 +331,34 @@ def main(window):
             current_piece = next_piece
             next_piece = get_random_piece()
             lock_piece = False
-            clear_rows(grid, locked_pos)
+            score += 100 * clear_rows(grid, locked_pos)
 
-        draw_window(window, grid)
+        draw_window(window, grid, score)
         draw_next_piece(next_piece, window)
         pygame.display.update()
 
         if check_lost(locked_pos):
+            display_end_message(window, "GAME OVER!", 80, (255, 215, 0))
+            pygame.display.update()
+            pygame.time.delay(2000)
             run = False
-    pygame.display.quit()
 
 
 def main_menu(window):
-    main(window)
+    run = True
+    while run:
+        window.fill((0, 0, 0))
+        display_end_message(window, 'Press Any Key To Play', 60, (255, 255, 255))
+        pygame.display.update()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+            if event.type == pygame.KEYDOWN:
+                main(window)
+
+    pygame.display.quit()
 
 
-window = pygame.display.set_mode((window_width, window_height))
+surface = pygame.display.set_mode((window_width, window_height))
 pygame.display.set_caption("Tetris")
-main_menu(window)
+main_menu(surface)
